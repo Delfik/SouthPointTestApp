@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <title>Тестовое приложение</title>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js'></script>
+</head>
+<body onload='init()'>
+<!--На фронтенде решил, честно, не особо заморачиваться. Поэтому, никакого дизайна не делал.
+Из доп. библиотек только jQuery по Google CDN
+Дефолтные значения:
+Минимальная длина поля - 2 символа,
+Максимальная длина поля - 30 символов
+Меняются в js коде-->
+<div>
+    <h3>Просмотр существующих контактов:</h3>
+    <div id='existingUsersList'></div>
+    <div>
+        <span>Фильтр по имени:</span>
+        <span>
+            <input type='text' id='userNameFilterText'>
+        </span>
+    </div>
+    <span id='parsedJsonOfUserList'></span>
+</div>
+<div>
+    <h3>Просмотр существующих групп:</h3>
+    <div id='existingGroupsList'></div>
+    <span id='parsedJsonOfGroupList'></span>
+</div>
+<div id='createContactDiv'>
+    <h3>Создание нового контакта</h3>
+    <form id='CreateNewUserForm'>
+        <label>Введите имя: <input type='text' id='createNewUserName' name='name'></label><br>
+        <label>Введите телефон: <input type='text' id='createNewUserPhone' name='phone'></label><br>
+        <label for='userGroupList'>Выберите группы контакта:</label>
+        <select name='groups' id='userGroupList' size='5' multiple style='margin-top: 20px; min-width: 8%'>
+        </select><br>
+        <input type='button' value='Сбросить выбор групп' id='deselectUserGroupList'>
+        <input type='submit' value='Создать контакт'><br>
+        <span id = 'newUserSuccCreation'></span>
+    </form>
+</div>
+<div id='createGroupDiv'>
+    <h3>Создание группы</h3>
+    <form id='CreateNewGroupForm'>
+        <label>Введите имя группы: <input type='text' id='createNewGroupName' name='name'></label><br>
+        <input type='submit' value='Создать группу'><br>
+        <span id = 'newGroupSuccCreation'></span>
+    </form>
+</div>
+<div id='editContactDiv'>
+    <h3>Редактирование контакта</h3>
+    <form id='EditExistingUserForm'>
+        <input type='hidden' id='editableUserId' name='id'>
+        <label>Введите новое имя: <input type='text' id='editUserName' name='name'></label><br>
+        <label>Введите новый телефон: <input type='text' id='editUserPhone' name='phone'></label><br>
+        <label for='editUserGroupList'>Выберите группы контакта:</label>
+        <select name='groups' id='editUserGroupList' size='5' multiple style='margin-top: 20px; min-width: 8%'>
+        </select><br>
+        <input type='button' value='Сбросить выбор групп' id='deselectEditUserGroupList'><br>
+        <input type='button' id='dontSaveEditContact' value='Отменить редактирование' onclick='defaultDivsVisibility()'><br>
+        <input type='submit' value='Редактировать контакт '><br>
+    </form>
+</div>
+<div id='editGroupDiv'>
+    <h3>Редактирование группы</h3>
+    <form id='EditExistingGroupForm'>
+        <input type='hidden' id='editableGroupId' name='id'>
+        <label>Введите новое имя группы: <input type='text' id='editGroupNewName' name='name'></label><br>
+        <input type='button' id='dontSaveEditGroup' value='Отменить редактирование' onclick='defaultDivsVisibility()'><br>
+        <input type='submit' value='Сохранить новое имя'><br>
+    </form>
+    <div>
+        <span>Контакты в группе:</span><br>
+        <div id='usersInGroupList'></div>
+    </div>
+</div>
+<script>
+    //server address configuration
+    var developmentPrefix = 'http://localhost:8080';
+    //Unique id for different purposes
+    var idForGroupListTableRow = 'groupListRow';
+    var idForUserListTableRow = 'userListTableRow';
+    var idForUserOptionGroup = 'userOptionGroupId';
+    var idForGroupNameRow = 'groupNameUniqueId';
+    var idForExcludeUserFromGroup = 'idForExcludeUserFromGroup';
+    var idForUserName = 'userNameId';
+    var idForUserPhone = 'userPhoneId';
+    var idForEditUserListOption = 'idForEditUserListOption';
+
+    //Minimum and maximum lengths for 'required' fields
+    var userNameMinLength = 2;
+    var userPhoneMinLength = 2;
+    var userGroupNameMinLength = 2;
+    var userNameMaxLength = 30;
+    var userPhoneMaxLength = 30;
+    var userGroupNameMaxLength = 30;
+
+    //Check min length options
+    var checkUserNameMinLength = true;
+    var checkUserPhoneMinLength = true;
+    var checkGroupNameMinLength = true;
+
+    //initial function
+    function init(){
+        $('#parsedJsonOfGroupList').hide(); //show if need to see json of full group list. After deletion contains old data!
+        $('#parsedJsonOfUserList').hide(); //show if need to see json of full users list. After deletion contains old data!
+        $('#newUserSuccCreation').hide(); //Message about successful user creation
+        $('#newGroupSuccCreation').hide(); //Message about successful user creation
+        fullUpdateUsersList(); //Full update of user list
+        fullUpdateGroupList(); //full update of group list
+        defaultDivsVisibility(); //Default visibility for different divs
+        //Set max length for text fields
+        $('#createNewUserName').attr('maxlength',userNameMaxLength);
+        $('#editUserName').attr('maxlength', userNameMaxLength);
+        $('#createNewUserPhone').attr('maxlength',userPhoneMaxLength);
+        $('#editUserPhone').attr('maxlength',userPhoneMaxLength);
+        $('#createNewGroupName').attr('maxlength',userGroupNameMaxLength);
+        $('#editGroupNewName').attr('maxlength',userGroupNameMaxLength);
+        $('#deselectUserGroupList').on('click', function(){ //Clear group list selection in user creation dialog
+            $('#userGroupList option').prop('selected', false);
+        });
+        $('#deselectEditUserGroupList').on('click', function(){ //Clear group list selection in user edit dialog
+            $('#editUserGroupList option').prop('selected', false);
+        });
+        $('#userNameFilterText').on('keyup', function() { //filter by name implementation
+            var text = $(this).val();
+            var filterUserQuery = new XMLHttpRequest();
+            if(text!='')filterUserQuery.open('GET', developmentPrefix+'/users/filter/'+text, true);
+            else filterUserQuery.open('GET', developmentPrefix+'/users/all', true);
+            filterUserQuery.send();
+            filterUserQuery.onreadystatechange = function() {
+                if(filterUserQuery.readyState!=4)return;
+                var parsed = generateUserList(filterUserQuery);
+                $('#existingUsersList').html(parsed);
+            };
+        });
+    }
+
+    //Setup default visibility for divs
+    function defaultDivsVisibility(){
+        $('#editContactDiv').hide();
+        $('#editGroupDiv').hide();
+        $('#createContactDiv').show();
+        $('#createGroupDiv').show();
+    }
+
+    function testFieldLength(id, len) {
+        var fieldLength = $(id).val().length;
+        if(fieldLength<len)return false;
+        return true;
+    }
+
+    //Copy & pasted function to serialize form data into JSON
+    (function ($) {
+        $.fn.serializeFormJSON = function () {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function () {
+                if (o[this.name]) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+    })(jQuery);
+
+    //fill data for Edit Group div
+    function processEditGroup(id){
+        $('#editableGroupId').val(id); //saved id for group
+        $('#editGroupNewName').val($('#'+idForGroupNameRow+id).text()); //saved old name for group
+        var groupUserQuery = new XMLHttpRequest();
+        groupUserQuery.open('GET', developmentPrefix+'/groups/users/'+id, true);
+        groupUserQuery.send();
+        groupUserQuery.onreadystatechange = function(){
+            if(groupUserQuery.readyState!=4)return;
+            var result = JSON.parse(groupUserQuery.responseText);
+            var parsed = '<table>';
+            parsed+= '<thead><tr><th>Имя контакта (телефон)</th><th>Действия</th></tr></thead>';
+            for(var i=0;i<result.length;i++) {
+                var obj = result[i];
+                parsed+= '<tr id=\''+idForExcludeUserFromGroup+obj['id']+'\'>';
+                parsed += '<td>'+obj['name']+' ('+obj['phone']+')'+'</td>';
+                parsed += '<td>'+'<a href=\'javascript:excludeUserFromGroup('+id+','+obj['id']+')\'>'+
+                        'Исключить из группы'+'</a></td>';
+                parsed += '</tr>'
+            }
+            parsed +='</table>';
+            $('#usersInGroupList').html(parsed);
+        };
+        defaultDivsVisibility();
+        $('#editGroupDiv').show();
+    }
+
+    //Process query to exclude user with id = uid from group with id = gid
+    function excludeUserFromGroup(gid, uid){
+        var query = new XMLHttpRequest();
+        query.open('GET', developmentPrefix+'/groups/users/exclude/'+uid+'/'+gid, true);
+        query.send();
+        query.onreadystatechange = function() {
+            if (query.readyState != 4)return;
+            removeElementById(idForExcludeUserFromGroup+uid);
+            fullUpdateUsersList();
+        }
+    }
+
+    $('#EditExistingGroupForm').submit(function (e) { //Start of EditExistingGroupForm submission
+        e.preventDefault();
+        processTextReplace('#editGroupNewName');
+        if(checkGroupNameMinLength)
+            if(!testFieldLength('#editGroupNewName', userGroupNameMinLength)){
+                alert('Минимальная длина поля \'\'Имя группы\'\' '+userGroupNameMinLength+' символа');
+                return;
+            }
+        var data = $(this).serializeFormJSON();
+        processUpdateGroupRequest(data)
+    });
+
+    //Process query to update group
+    function processUpdateGroupRequest(data){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET',developmentPrefix+'/groups/update/'+JSON.stringify(data), true);
+        xhttp.send();
+        xhttp.onreadystatechange = function(){
+            if(xhttp.readyState!=4)return;
+            if(xhttp.status!=200){
+                console.log('Error during processing HTTP request of update group record');
+            } else {
+                fullUpdateUsersList();
+                fullUpdateGroupList();
+                //Можно было бы реализовать неполное обновление, а только измененной группы, но тут решил,
+                //что лучше пораньше отправить выполненное задание
+            }
+        };
+        defaultDivsVisibility();
+    }
+
+    $('#EditExistingUserForm').submit(function (e) { //Start of EditExistingUserForm submission
+        e.preventDefault();
+        //manually form JSON
+        var data = {};
+        var groups = [];
+        var array = [];
+        processTextReplace('#editUserName');
+        processTextReplace('#editUserPhone');
+        if(checkUserNameMinLength)
+            if(!testFieldLength('#editUserName', userNameMinLength)){
+                alert('Минимальная длина поля \'\'Имя\'\' '+userNameMinLength+' символа');
+                return;
+            }
+        if(checkUserPhoneMinLength)
+            if(!testFieldLength('#editUserPhone', userPhoneMinLength)){
+                alert('Минимальная длина поля \'\'Телефон\'\' '+userPhoneMinLength+' символа');
+                return;
+            }
+        $('#editUserGroupList option:selected').each(function() { //form groups aray
+            array.push($(this).attr('name'));
+        });
+        for(var i=0;i<array.length;i++)
+            groups.push({'id':array[i]});
+        data['id'] = $('#editableUserId').val();
+        data['name'] = $('#editUserName').val();
+        data['phone'] = $('#editUserPhone').val();
+        data['groups'] = groups;
+        processEditUserRequest(data);
+    });
+
+    //Process query to edit user
+    function processEditUserRequest(data){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET',developmentPrefix+'/users/edit/'+JSON.stringify(data), true);
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState != 4)return;
+            if (xhttp.status != 200) {
+                console.log('Error during processing HTTP request of CreateNewUserForm');
+            } else {
+                fullUpdateUsersList();
+            }
+        };
+        defaultDivsVisibility();
+    }
+
+    $('#CreateNewUserForm').submit(function (e) { //Start of CreateNewUserForm submission
+        e.preventDefault();
+        //Manually form JSON
+        var data = {};
+        var groups = [];
+        var array = [];
+        processTextReplace('#createNewUserName');
+        processTextReplace('#createNewUserPhone');
+        if(checkUserNameMinLength)
+            if(!testFieldLength('#createNewUserName', userNameMinLength)){
+                alert('Минимальная длина поля \'\'Имя\'\' '+userNameMinLength+' символа');
+                return;
+            }
+        if(checkUserPhoneMinLength)
+            if(!testFieldLength('#createNewUserPhone', userPhoneMinLength)){
+                alert('Минимальная длина поля \'\'Телефон\'\' '+userPhoneMinLength+' символа');
+                return;
+            }
+        $('#userGroupList option:selected').each(function() {
+            array.push($(this).attr('name'));
+        });
+        for(var i=0;i<array.length;i++)
+            groups.push({'id':array[i]});
+        data['name'] = $('#createNewUserName').val();
+        data['phone'] = $('#createNewUserPhone').val();
+        data['groups'] = groups;
+        processNewUserRequest(data);
+    });
+
+    //Process query to edit new user
+    function processNewUserRequest(data){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET',developmentPrefix+'/users/new/'+JSON.stringify(data), true);
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState != 4)return;
+            if (xhttp.status != 200) {
+                console.log('Error during processing HTTP request of CreateNewUserForm');
+                $('#newUserSuccCreation').html('Error during processing HTTP request of CreateNewUserForm:<br>' + xhttp.responseText);
+            } else {
+                $('#newUserSuccCreation').html('User with name <b>' + data['name'] + '</b> and phone <b>' + data['phone'] + '</b> successfully created');
+                $('#userGroupList option').prop('selected', false);
+                $('#createNewUserName').val('');
+                $('#createNewUserPhone').val('');
+                fullUpdateUsersList();
+            }
+        }
+    }
+
+    //Process request of all users
+    function fullUpdateUsersList(){
+        var allUsersQuery = new XMLHttpRequest();
+        allUsersQuery.open('GET', developmentPrefix+'/users/all', true);
+        allUsersQuery.send();
+        allUsersQuery.onreadystatechange = function(){
+            if(allUsersQuery.readyState!=4)return;
+            $('#parsedJsonOfUserList').text(allUsersQuery.responseText);
+            var parsed = generateUserList(allUsersQuery);
+            $('#existingUsersList').html(parsed);
+        }
+    }
+
+    //Generate user list based on server response (used in request all user and user filtering)
+    function generateUserList(request){
+        var result = JSON.parse(request.responseText);
+        var parsed = '<table>';
+        parsed+= '<thead><tr><th>Имя контакта</th><th>Телефон</th><th>Группы</th>'+
+                '<th colspan=\'2\'>Действия</th></tr></thead>';
+        for(var i=0;i<result.length;i++){
+            var obj = result[i];
+            parsed+='<tr id = \''+idForUserListTableRow+obj['id']+'\'>';
+            parsed += '<td id=\''+idForUserName+obj['id']+'\'>'+obj['name']+'</td>';
+            parsed += '<td id=\''+idForUserPhone+obj['id']+'\'>'+obj['phone']+'</td>';
+            parsed += '<td>';
+            var gr = obj['groups'];
+            for(var j = 0; j<gr.length;j++){
+                parsed += gr[j]['name'];
+                if(j!=gr.length-1){
+                    parsed+=', ';
+                }
+            }
+            parsed += '</td>';
+            parsed += '<td>'+'<a href=\''+'javascript:processDeleteUserById('+obj['id']+')'+'\'>'+
+                    'удалить</a>'+'</td>';
+            parsed += '<td>'+'<a href=\''+'javascript:processEditUser('+obj['id']+')'+'\'>'+
+                    'редактировать</a>'+'</td>';
+            parsed+='</tr>';
+        }
+        parsed+='</table>';
+        return parsed;
+    }
+
+    function processEditUser(id){
+        //fill edit user form data
+        $('#editableUserId').val(id); //saved id for user
+        $('#editUserName').val($('#'+idForUserName+id).text()); //saved old name for user
+        $('#editUserPhone').val($('#'+idForUserPhone+id).text());
+        var groupsQuery = new XMLHttpRequest();
+        groupsQuery.open('GET', developmentPrefix+'/users/groups/'+id, true);
+        groupsQuery.send();
+        groupsQuery.onreadystatechange = function(){
+            if(groupsQuery.readyState!=4)return;
+            var groups = JSON.parse(groupsQuery.responseText);
+            $('#editUserGroupList option').prop('selected', false);
+            for(var i = 0; i < groups.length; i++){
+                var group = groups[i];
+                //Select user groups:
+                $('#editUserGroupList option[id=\''+idForEditUserListOption+group['id']+'\']').prop('selected', 'selected').change();
+            }
+        };
+        defaultDivsVisibility();
+        $('#editContactDiv').show();
+    }
+
+    $('#CreateNewGroupForm').submit(function (e) { //Start of CreateNewGroupForm submission
+        e.preventDefault();
+        processTextReplace('#createNewGroupName');
+        if(checkGroupNameMinLength)
+            if(!testFieldLength('#createNewGroupName', userGroupNameMinLength)){
+                alert('Минимальная длина поля \'\'Имя группы\'\' '+userGroupNameMinLength+' символа');
+                return;
+            }
+        var data = $(this).serializeFormJSON();
+        processNewGroupRequest(data)
+    });
+
+    //Process query to create new group
+    function processNewGroupRequest(data){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET',developmentPrefix+'/groups/new/'+JSON.stringify(data), true);
+        xhttp.send();
+        xhttp.onreadystatechange = function(){
+            if(xhttp.readyState!=4)return;
+            if(xhttp.status!=200){
+                console.log('Error during processing HTTP request of CreateNewGroupForm');
+                $('#newGroupSuccCreation').text('Error during processing HTTP request of CreateNewGroupForm:\n'+xhttp.responseText);
+            } else {
+                $('#newGroupSuccCreation').html('Group with name <b>'+data['name']+'</b> successfully created');
+                $('#createNewGroupName').val('');
+                fullUpdateGroupList(); //мб реализовать неполное обновление
+            }
+        };
+    }
+
+    //Update group list
+    function fullUpdateGroupList(){
+        var allGroupsQuery = new XMLHttpRequest();
+        allGroupsQuery.open('GET', developmentPrefix+'/groups/all', true);
+        allGroupsQuery.send();
+        allGroupsQuery.onreadystatechange = function(){
+            if(allGroupsQuery.readyState!=4)return
+            $('#userGroupList option').remove();
+            $('#editUserGroupList option').remove();
+            $('#parsedJsonOfGroupList').text(allGroupsQuery.responseText);
+            var result = JSON.parse(allGroupsQuery.responseText);
+            var parsed = '<table>';
+            parsed+= '<thead><tr><th>Название группы</th><th colspan=\'2\'>Действия</th></tr></thead>';
+            for(var i=0;i<result.length;i++){
+                var obj = result[i];
+                parsed+='<tr id = \''+idForGroupListTableRow+obj['id']+'\'>';
+                parsed += '<td id=\''+idForGroupNameRow+obj['id']+'\'>'+obj['name']+'</td>';
+                parsed += '<td>'+'<a href=\''+'javascript:processDeleteGroupById('+obj['id']+')'+'\'>'+
+                        'удалить</a>'+'</td>';
+                parsed += '<td>'+'<a href=\''+'javascript:processEditGroup('+obj['id']+')'+'\'>'+
+                        'редактировать</a>'+'</td>';
+                parsed+='</tr>';
+                $('#userGroupList').append('<option name=\''+obj['id']+'\' id=\''
+                        +idForUserOptionGroup+obj['id']+'\'>'+obj['name']+'</option>>');
+                $('#editUserGroupList').append('<option name=\''+obj['id']+'\' id=\''
+                        +idForEditUserListOption+obj['id']+'\'>'+obj['name']+'</option>>');
+            }
+            parsed+='</table>';
+            $('#existingGroupsList').html(parsed);
+        }
+    }
+
+    //Process query to delete group by id
+    function processDeleteGroupById(id){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET', developmentPrefix+'/groups/delete/'+id, true);
+        xhttp.send();
+        xhttp.onreadystatechange = function(){
+            if(xhttp.readyState!=4)return;
+            if(xhttp.status!=200){
+                console.log('Error during processing HTTP request of deleteGroupById');
+            } else {
+                removeElementById(idForGroupListTableRow+id); //удаление только нужной строки из DOM таблицы
+                removeElementById(idForUserOptionGroup+id); //из DOM для списка групп
+                removeElementById(idForUserOptionGroup+id); //из опшнов
+                fullUpdateUsersList(); //обновить список юзеров в соответствии с новыми данными...
+            }
+        };
+    }
+
+    //Process query to delete user by id
+    function processDeleteUserById(id){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET', developmentPrefix+'/users/delete/'+id, true);
+        xhttp.send();
+        xhttp.onreadystatechange = function(){
+            if(xhttp.readyState!=4)return;
+            if(xhttp.status!=200){
+                console.log('Error during processing HTTP request of deleteUserById');
+            } else {
+                removeElementById(idForUserListTableRow+id); //удаление только нужной строки из DOM таблицы
+            }
+        };
+    }
+
+    //Remove element by id
+    function removeElementById(id){
+        $('#'+id).remove();
+    }
+
+    //Simple filter for input
+    function specialReplace(data){
+        return data.replace(/[^a-zA-ZА-Яа-я0-9+\-\s]/gi, '').toString();
+    }
+
+    //Process filter
+    function processTextReplace(id){
+        $(id).val(specialReplace($(id).val()));
+    }
+</script>
+</body>
+</html>

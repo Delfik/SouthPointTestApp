@@ -5,7 +5,6 @@ import main.models.GroupRecord;
 import main.models.GroupRecordDao;
 import main.models.PhonebookRecord;
 import main.models.PhonebookRecordDao;
-import main.views.ApplicationView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -169,12 +168,4 @@ public class RequestsController {
 
     @Autowired
     private GroupRecordDao groupRecordDao;
-
-    //Мм, да, за такое надо бить по рукам, знаю.
-    //Тут основная проблема в том, что я не смог настроить правильный возврат HTML кода =\ из-за этого такой костыль
-    @RequestMapping("/")
-    public String index(){
-        return ApplicationView.mainView();
-    }
-
 }
