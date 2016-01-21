@@ -86,7 +86,7 @@ public class ApplicationView {
                 "</div>\n" +
                 "    <script>\n" +
                 "        //server address configuration\n" +
-                "        var developmentPrefix = '';\n" +
+                "        var developmentPrefix = 'http://localhost:8080';\n" +
                 "        //Unique id for different purposes\n" +
                 "        var idForGroupListTableRow = 'groupListRow';\n" +
                 "        var idForUserListTableRow = 'userListTableRow';\n" +
@@ -240,7 +240,6 @@ public class ApplicationView {
                 "                if(xhttp.status!=200){\n" +
                 "                    console.log('Error during processing HTTP request of update group record');\n" +
                 "                } else {\n" +
-                "                    data = JSON.parse(xhttp.responseText);\n" +
                 "                    fullUpdateUsersList();\n" +
                 "                    fullUpdateGroupList();\n" +
                 "                    //Можно было бы реализовать неполное обновление, а только измененной группы, но тут решил,\n" +
@@ -336,8 +335,10 @@ public class ApplicationView {
                 "                    console.log('Error during processing HTTP request of CreateNewUserForm');\n" +
                 "                    $('#newUserSuccCreation').html('Error during processing HTTP request of CreateNewUserForm:<br>' + xhttp.responseText);\n" +
                 "                } else {\n" +
-                "                    $('#newUserSuccCreation').html('User with name <b>' + data['name'] + '</b> and phone <b>' + data['phone'] + '</b> successfully created'/* + xhttp.responseText*/);\n" +
+                "                    $('#newUserSuccCreation').html('User with name <b>' + data['name'] + '</b> and phone <b>' + data['phone'] + '</b> successfully created');\n" +
                 "                    $('#userGroupList option').prop('selected', false);\n" +
+                "                    $('#createNewUserName').val('');\n" +
+                "                    $('#createNewUserPhone').val('');\n" +
                 "                    fullUpdateUsersList();\n" +
                 "                }\n" +
                 "            }\n" +
@@ -431,8 +432,8 @@ public class ApplicationView {
                 "                    console.log('Error during processing HTTP request of CreateNewGroupForm');\n" +
                 "                    $('#newGroupSuccCreation').text('Error during processing HTTP request of CreateNewGroupForm:\\n'+xhttp.responseText);\n" +
                 "                } else {\n" +
-                "                    $('#newGroupSuccCreation').html('Group with name <b>'+data['name']+'</b> successfully created'/*+xhttp.responseText*/);\n" +
-                "                    data = JSON.parse(xhttp.responseText);\n" +
+                "                    $('#newGroupSuccCreation').html('Group with name <b>'+data['name']+'</b> successfully created');\n" +
+                "                    $('#createNewGroupName').val('');\n" +
                 "                    fullUpdateGroupList(); //мб реализовать неполное обновление\n" +
                 "                }\n" +
                 "            };\n" +
