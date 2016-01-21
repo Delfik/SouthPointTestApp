@@ -5,12 +5,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Created by delf on 1/22/16.
+ * Controller for index page
  */
 @Controller
 public class MainController {
-
     @RequestMapping("/")
-    // @ResponseBody
+    //Returns static html page
     public String index() {
         return "index.html";
     }

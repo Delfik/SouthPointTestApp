@@ -128,7 +128,7 @@
             var text = $(this).val();
             var filterUserQuery = new XMLHttpRequest();
             if(text!='')filterUserQuery.open('GET', developmentPrefix+'/users/filter/'+text, true);
-            else filterUserQuery.open('GET', developmentPrefix+'/users/all', true);
+            else filterUserQuery.open('GET', developmentPrefix+'/users/', true);
             filterUserQuery.send();
             filterUserQuery.onreadystatechange = function() {
                 if(filterUserQuery.readyState!=4)return;
@@ -201,7 +201,7 @@
     //Process query to exclude user with id = uid from group with id = gid
     function excludeUserFromGroup(gid, uid){
         var query = new XMLHttpRequest();
-        query.open('GET', developmentPrefix+'/groups/users/exclude/'+uid+'/'+gid, true);
+        query.open('DELETE', developmentPrefix+'/groups/users/'+uid+'/'+gid, true);
         query.send();
         query.onreadystatechange = function() {
             if (query.readyState != 4)return;
@@ -225,8 +225,8 @@
     //Process query to update group
     function processUpdateGroupRequest(data){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',developmentPrefix+'/groups/update/'+JSON.stringify(data), true);
-        xhttp.send();
+        xhttp.open('PUT',developmentPrefix+'/groups/', true);
+        xhttp.send(JSON.stringify(data));
         xhttp.onreadystatechange = function(){
             if(xhttp.readyState!=4)return;
             if(xhttp.status!=200){
@@ -274,8 +274,8 @@
     //Process query to edit user
     function processEditUserRequest(data){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',developmentPrefix+'/users/edit/'+JSON.stringify(data), true);
-        xhttp.send();
+        xhttp.open('PUT',developmentPrefix+'/users/', true);
+        xhttp.send(JSON.stringify(data));
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState != 4)return;
             if (xhttp.status != 200) {
@@ -319,8 +319,8 @@
     //Process query to edit new user
     function processNewUserRequest(data){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',developmentPrefix+'/users/new/'+JSON.stringify(data), true);
-        xhttp.send();
+        xhttp.open('POST',developmentPrefix+'/users/', true);
+        xhttp.send(JSON.stringify(data));
         xhttp.onreadystatechange = function() {
             if (xhttp.readyState != 4)return;
             if (xhttp.status != 200) {
@@ -339,7 +339,7 @@
     //Process request of all users
     function fullUpdateUsersList(){
         var allUsersQuery = new XMLHttpRequest();
-        allUsersQuery.open('GET', developmentPrefix+'/users/all', true);
+        allUsersQuery.open('GET', developmentPrefix+'/users/', true);
         allUsersQuery.send();
         allUsersQuery.onreadystatechange = function(){
             if(allUsersQuery.readyState!=4)return;
@@ -416,8 +416,8 @@
     //Process query to create new group
     function processNewGroupRequest(data){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET',developmentPrefix+'/groups/new/'+JSON.stringify(data), true);
-        xhttp.send();
+        xhttp.open('POST',developmentPrefix+'/groups/', true);
+        xhttp.send(JSON.stringify(data));
         xhttp.onreadystatechange = function(){
             if(xhttp.readyState!=4)return;
             if(xhttp.status!=200){
@@ -434,7 +434,7 @@
     //Update group list
     function fullUpdateGroupList(){
         var allGroupsQuery = new XMLHttpRequest();
-        allGroupsQuery.open('GET', developmentPrefix+'/groups/all', true);
+        allGroupsQuery.open('GET', developmentPrefix+'/groups/', true);
         allGroupsQuery.send();
         allGroupsQuery.onreadystatechange = function(){
             if(allGroupsQuery.readyState!=4)return
@@ -466,7 +466,7 @@
     //Process query to delete group by id
     function processDeleteGroupById(id){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET', developmentPrefix+'/groups/delete/'+id, true);
+        xhttp.open('DELETE', developmentPrefix+'/groups/'+id, true);
         xhttp.send();
         xhttp.onreadystatechange = function(){
             if(xhttp.readyState!=4)return;
@@ -484,7 +484,7 @@
     //Process query to delete user by id
     function processDeleteUserById(id){
         var xhttp = new XMLHttpRequest();
-        xhttp.open('GET', developmentPrefix+'/users/delete/'+id, true);
+        xhttp.open('DELETE', developmentPrefix+'/users/'+id, true);
         xhttp.send();
         xhttp.onreadystatechange = function(){
             if(xhttp.readyState!=4)return;
