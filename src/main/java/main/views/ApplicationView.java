@@ -10,12 +10,16 @@ public class ApplicationView {
                 "<html>\n" +
                 "<head>\n" +
                 "    <meta charset='UTF-8'>\n" +
-                "    <title>Морда тестового приложения</title>\n" +
+                "    <title>Тестовое приложение</title>\n" +
                 "    <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js'></script>\n" +
                 "</head>\n" +
                 "<body onload='init()'>\n" +
                 "<!--На фронтенде решил, честно, не особо заморачиваться. Поэтому, никакого дизайна не делал.\n" +
-                "Из доп. библиотек только jQuery по Google CDN-->\n" +
+                "Из доп. библиотек только jQuery по Google CDN\n" +
+                "Дефолтные значения:\n" +
+                "Минимальная длина поля - 2 символа,\n" +
+                "Максимальная длина поля - 30 символов\n" +
+                "Меняются в js коде-->\n" +
                 "<div>\n" +
                 "    <h3>Просмотр существующих контактов:</h3>\n" +
                 "    <div id='existingUsersList'></div>\n" +
@@ -35,8 +39,8 @@ public class ApplicationView {
                 "<div id='createContactDiv'>\n" +
                 "    <h3>Создание нового контакта</h3>\n" +
                 "    <form id='CreateNewUserForm'>\n" +
-                "        <label>Введите имя: <input type='text' id='createNewUserName' name='name' maxlength='30'></label><br>\n" +
-                "        <label>Введите телефон: <input type='text' id='createNewUserPhone' name='phone' maxlength='30'></label><br>\n" +
+                "        <label>Введите имя: <input type='text' id='createNewUserName' name='name'></label><br>\n" +
+                "        <label>Введите телефон: <input type='text' id='createNewUserPhone' name='phone'></label><br>\n" +
                 "        <label for='userGroupList'>Выберите группы контакта:</label>\n" +
                 "        <select name='groups' id='userGroupList' size='5' multiple style='margin-top: 20px; min-width: 8%'>\n" +
                 "        </select><br>\n" +
@@ -48,7 +52,7 @@ public class ApplicationView {
                 "<div id='createGroupDiv'>\n" +
                 "    <h3>Создание группы</h3>\n" +
                 "    <form id='CreateNewGroupForm'>\n" +
-                "        <label>Введите имя группы: <input type='text' id='createNewGroupName' name='name' maxlength='30'></label><br>\n" +
+                "        <label>Введите имя группы: <input type='text' id='createNewGroupName' name='name'></label><br>\n" +
                 "        <input type='submit' value='Создать группу'><br>\n" +
                 "        <span id = 'newGroupSuccCreation'></span>\n" +
                 "    </form>\n" +
@@ -57,8 +61,8 @@ public class ApplicationView {
                 "    <h3>Редактирование контакта</h3>\n" +
                 "    <form id='EditExistingUserForm'>\n" +
                 "        <input type='hidden' id='editableUserId' name='id'>\n" +
-                "        <label>Введите новое имя: <input type='text' id='editUserName' name='name' maxlength='30'></label><br>\n" +
-                "        <label>Введите новый телефон: <input type='text' id='editUserPhone' name='phone' maxlength='30'></label><br>\n" +
+                "        <label>Введите новое имя: <input type='text' id='editUserName' name='name'></label><br>\n" +
+                "        <label>Введите новый телефон: <input type='text' id='editUserPhone' name='phone'></label><br>\n" +
                 "        <label for='editUserGroupList'>Выберите группы контакта:</label>\n" +
                 "        <select name='groups' id='editUserGroupList' size='5' multiple style='margin-top: 20px; min-width: 8%'>\n" +
                 "        </select><br>\n" +
@@ -71,7 +75,7 @@ public class ApplicationView {
                 "    <h3>Редактирование группы</h3>\n" +
                 "    <form id='EditExistingGroupForm'>\n" +
                 "        <input type='hidden' id='editableGroupId' name='id'>\n" +
-                "        <label>Введите новое имя группы: <input type='text' id='editGroupNewName' name='name' maxlength='30'></label><br>\n" +
+                "        <label>Введите новое имя группы: <input type='text' id='editGroupNewName' name='name'></label><br>\n" +
                 "        <input type='button' id='dontSaveEditGroup' value='Отменить редактирование' onclick='defaultDivsVisibility()'><br>\n" +
                 "        <input type='submit' value='Сохранить новое имя'><br>\n" +
                 "    </form>\n" +
@@ -81,8 +85,9 @@ public class ApplicationView {
                 "    </div>\n" +
                 "</div>\n" +
                 "    <script>\n" +
+                "        //server address configuration\n" +
+                "        var developmentPrefix = '';\n" +
                 "        //Unique id for different purposes\n" +
-                "        var developmentPrefix = 'http://localhost:8080';\n" +
                 "        var idForGroupListTableRow = 'groupListRow';\n" +
                 "        var idForUserListTableRow = 'userListTableRow';\n" +
                 "        var idForUserOptionGroup = 'userOptionGroupId';\n" +
@@ -91,7 +96,20 @@ public class ApplicationView {
                 "        var idForUserName = 'userNameId';\n" +
                 "        var idForUserPhone = 'userPhoneId';\n" +
                 "        var idForEditUserListOption = 'idForEditUserListOption';\n" +
-                "        \n" +
+                "\n" +
+                "        //Minimum and maximum lengths for 'required' fields\n" +
+                "        var userNameMinLength = 2;\n" +
+                "        var userPhoneMinLength = 2;\n" +
+                "        var userGroupNameMinLength = 2;\n" +
+                "        var userNameMaxLength = 30;\n" +
+                "        var userPhoneMaxLength = 30;\n" +
+                "        var userGroupNameMaxLength = 30;\n" +
+                "\n" +
+                "        //Check min length options\n" +
+                "        var checkUserNameMinLength = true;\n" +
+                "        var checkUserPhoneMinLength = true;\n" +
+                "        var checkGroupNameMinLength = true;\n" +
+                "\n" +
                 "        //initial function\n" +
                 "        function init(){\n" +
                 "            $('#parsedJsonOfGroupList').hide(); //show if need to see json of full group list. After deletion contains old data!\n" +
@@ -101,6 +119,13 @@ public class ApplicationView {
                 "            fullUpdateUsersList(); //Full update of user list\n" +
                 "            fullUpdateGroupList(); //full update of group list\n" +
                 "            defaultDivsVisibility(); //Default visibility for different divs\n" +
+                "            //Set max length for text fields\n" +
+                "            $('#createNewUserName').attr('maxlength',userNameMaxLength);\n" +
+                "            $('#editUserName').attr('maxlength', userNameMaxLength);\n" +
+                "            $('#createNewUserPhone').attr('maxlength',userPhoneMaxLength);\n" +
+                "            $('#editUserPhone').attr('maxlength',userPhoneMaxLength);\n" +
+                "            $('#createNewGroupName').attr('maxlength',userGroupNameMaxLength);\n" +
+                "            $('#editGroupNewName').attr('maxlength',userGroupNameMaxLength);\n" +
                 "            $('#deselectUserGroupList').on('click', function(){ //Clear group list selection in user creation dialog\n" +
                 "                $('#userGroupList option').prop('selected', false);\n" +
                 "            });\n" +
@@ -120,13 +145,19 @@ public class ApplicationView {
                 "                };\n" +
                 "            });\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Setup default visibility for divs\n" +
                 "        function defaultDivsVisibility(){\n" +
                 "            $('#editContactDiv').hide();\n" +
                 "            $('#editGroupDiv').hide();\n" +
                 "            $('#createContactDiv').show();\n" +
                 "            $('#createGroupDiv').show();\n" +
+                "        }\n" +
+                "\n" +
+                "        function testFieldLength(id, len) {\n" +
+                "            var fieldLength = $(id).val().length;\n" +
+                "            if(fieldLength<len)return false;\n" +
+                "            return true;\n" +
                 "        }\n" +
                 "\n" +
                 "        //Copy & pasted function to serialize form data into JSON\n" +
@@ -147,7 +178,7 @@ public class ApplicationView {
                 "                return o;\n" +
                 "            };\n" +
                 "        })(jQuery);\n" +
-                "        \n" +
+                "\n" +
                 "        //fill data for Edit Group div\n" +
                 "        function processEditGroup(id){\n" +
                 "            $('#editableGroupId').val(id); //saved id for group\n" +
@@ -174,7 +205,7 @@ public class ApplicationView {
                 "            defaultDivsVisibility();\n" +
                 "            $('#editGroupDiv').show();\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to exclude user with id = uid from group with id = gid\n" +
                 "        function excludeUserFromGroup(gid, uid){\n" +
                 "            var query = new XMLHttpRequest();\n" +
@@ -190,10 +221,15 @@ public class ApplicationView {
                 "        $('#EditExistingGroupForm').submit(function (e) { //Start of EditExistingGroupForm submission\n" +
                 "            e.preventDefault();\n" +
                 "            processTextReplace('#editGroupNewName');\n" +
+                "            if(checkGroupNameMinLength)\n" +
+                "                if(!testFieldLength('#editGroupNewName', userGroupNameMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Имя группы\\'\\' '+userGroupNameMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
                 "            var data = $(this).serializeFormJSON();\n" +
                 "            processUpdateGroupRequest(data)\n" +
                 "        });\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to update group\n" +
                 "        function processUpdateGroupRequest(data){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -220,20 +256,30 @@ public class ApplicationView {
                 "            var data = {};\n" +
                 "            var groups = [];\n" +
                 "            var array = [];\n" +
+                "            processTextReplace('#editUserName');\n" +
+                "            processTextReplace('#editUserPhone');\n" +
+                "            if(checkUserNameMinLength)\n" +
+                "                if(!testFieldLength('#editUserName', userNameMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Имя\\'\\' '+userNameMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
+                "            if(checkUserPhoneMinLength)\n" +
+                "                if(!testFieldLength('#editUserPhone', userPhoneMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Телефон\\'\\' '+userPhoneMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
                 "            $('#editUserGroupList option:selected').each(function() { //form groups aray\n" +
                 "                array.push($(this).attr('name'));\n" +
                 "            });\n" +
                 "            for(var i=0;i<array.length;i++)\n" +
                 "                groups.push({'id':array[i]});\n" +
                 "            data['id'] = $('#editableUserId').val();\n" +
-                "            processTextReplace('#editUserName');\n" +
                 "            data['name'] = $('#editUserName').val();\n" +
-                "            processTextReplace('#editUserPhone');\n" +
                 "            data['phone'] = $('#editUserPhone').val();\n" +
                 "            data['groups'] = groups;\n" +
                 "            processEditUserRequest(data);\n" +
                 "        });\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to edit user\n" +
                 "        function processEditUserRequest(data){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -256,19 +302,29 @@ public class ApplicationView {
                 "            var data = {};\n" +
                 "            var groups = [];\n" +
                 "            var array = [];\n" +
+                "            processTextReplace('#createNewUserName');\n" +
+                "            processTextReplace('#createNewUserPhone');\n" +
+                "            if(checkUserNameMinLength)\n" +
+                "                if(!testFieldLength('#createNewUserName', userNameMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Имя\\'\\' '+userNameMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
+                "            if(checkUserPhoneMinLength)\n" +
+                "                if(!testFieldLength('#createNewUserPhone', userPhoneMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Телефон\\'\\' '+userPhoneMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
                 "            $('#userGroupList option:selected').each(function() {\n" +
                 "                array.push($(this).attr('name'));\n" +
                 "            });\n" +
                 "            for(var i=0;i<array.length;i++)\n" +
                 "                groups.push({'id':array[i]});\n" +
-                "            processTextReplace('#createNewUserName');\n" +
                 "            data['name'] = $('#createNewUserName').val();\n" +
-                "            processTextReplace('#createNewUserPhone');\n" +
                 "            data['phone'] = $('#createNewUserPhone').val();\n" +
                 "            data['groups'] = groups;\n" +
                 "            processNewUserRequest(data);\n" +
                 "        });\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to edit new user\n" +
                 "        function processNewUserRequest(data){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -286,7 +342,7 @@ public class ApplicationView {
                 "                }\n" +
                 "            }\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Process request of all users\n" +
                 "        function fullUpdateUsersList(){\n" +
                 "            var allUsersQuery = new XMLHttpRequest();\n" +
@@ -299,7 +355,7 @@ public class ApplicationView {
                 "                $('#existingUsersList').html(parsed);\n" +
                 "            }\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Generate user list based on server response (used in request all user and user filtering)\n" +
                 "        function generateUserList(request){\n" +
                 "            var result = JSON.parse(request.responseText);\n" +
@@ -355,10 +411,15 @@ public class ApplicationView {
                 "        $('#CreateNewGroupForm').submit(function (e) { //Start of CreateNewGroupForm submission\n" +
                 "            e.preventDefault();\n" +
                 "            processTextReplace('#createNewGroupName');\n" +
+                "            if(checkGroupNameMinLength)\n" +
+                "                if(!testFieldLength('#createNewGroupName', userGroupNameMinLength)){\n" +
+                "                    alert('Минимальная длина поля \\'\\'Имя группы\\'\\' '+userGroupNameMinLength+' символа');\n" +
+                "                    return;\n" +
+                "                }\n" +
                 "            var data = $(this).serializeFormJSON();\n" +
                 "            processNewGroupRequest(data)\n" +
                 "        });\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to create new group\n" +
                 "        function processNewGroupRequest(data){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -376,7 +437,7 @@ public class ApplicationView {
                 "                }\n" +
                 "            };\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Update group list\n" +
                 "        function fullUpdateGroupList(){\n" +
                 "            var allGroupsQuery = new XMLHttpRequest();\n" +
@@ -408,7 +469,7 @@ public class ApplicationView {
                 "                $('#existingGroupsList').html(parsed);\n" +
                 "            }\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to delete group by id\n" +
                 "        function processDeleteGroupById(id){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -426,7 +487,7 @@ public class ApplicationView {
                 "                }\n" +
                 "            };\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Process query to delete user by id\n" +
                 "        function processDeleteUserById(id){\n" +
                 "            var xhttp = new XMLHttpRequest();\n" +
@@ -441,7 +502,7 @@ public class ApplicationView {
                 "                }\n" +
                 "            };\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Remove element by id\n" +
                 "        function removeElementById(id){\n" +
                 "            $('#'+id).remove();\n" +
@@ -449,9 +510,9 @@ public class ApplicationView {
                 "\n" +
                 "        //Simple filter for imput\n" +
                 "        function specialReplace(data){\n" +
-                "            return data.replace(/[^a-zA-ZА-Яа-я0-9+\\s]/gi, '').toString();\n" +
+                "            return data.replace(/[^a-zA-ZА-Яа-я0-9+\\-\\s]/gi, '').toString();\n" +
                 "        }\n" +
-                "        \n" +
+                "\n" +
                 "        //Process filter\n" +
                 "        function processTextReplace(id){\n" +
                 "            $(id).val(specialReplace($(id).val()));\n" +
