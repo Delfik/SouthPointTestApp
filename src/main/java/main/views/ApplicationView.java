@@ -508,7 +508,7 @@ public class ApplicationView {
                 "            $('#'+id).remove();\n" +
                 "        }\n" +
                 "\n" +
-                "        //Simple filter for imput\n" +
+                "        //Simple filter for input\n" +
                 "        function specialReplace(data){\n" +
                 "            return data.replace(/[^a-zA-ZА-Яа-я0-9+\\-\\s]/gi, '').toString();\n" +
                 "        }\n" +
