@@ -86,7 +86,7 @@ public class ApplicationView {
                 "</div>\n" +
                 "    <script>\n" +
                 "        //server address configuration\n" +
-                "        var developmentPrefix = 'http://localhost:8080';\n" +
+                "        var developmentPrefix = '';\n" +
                 "        //Unique id for different purposes\n" +
                 "        var idForGroupListTableRow = 'groupListRow';\n" +
                 "        var idForUserListTableRow = 'userListTableRow';\n" +
