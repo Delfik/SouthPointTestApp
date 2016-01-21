@@ -34,7 +34,7 @@ public class PhonebookRecordDao {
         return entityManager.createQuery("from PhonebookRecord").getResultList();
     }
 
-    //Return records wich name contains name param
+    //Return records which name contains name param
     public List<PhonebookRecord> filterByName(String name) {
         return entityManager.createQuery("from PhonebookRecord where name like :name").setParameter("name", "%"+name+"%").getResultList();
     }
