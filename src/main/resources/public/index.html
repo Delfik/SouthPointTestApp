@@ -194,14 +194,16 @@
             parsed +='</table>';
             $('#usersInGroupList').html(parsed);
         };
-        defaultDivsVisibility();
+        $('#createContactDiv').hide();
+        $('#createGroupDiv').hide();
+        $('#editContactDiv').hide();
         $('#editGroupDiv').show();
     }
 
     //Process query to exclude user with id = uid from group with id = gid
     function excludeUserFromGroup(gid, uid){
         var query = new XMLHttpRequest();
-        query.open('DELETE', developmentPrefix+'/groups/users/'+uid+'/'+gid, true);
+        query.open('DELETE', developmentPrefix+'/groups/'+uid+'/'+gid, true);
         query.send();
         query.onreadystatechange = function() {
             if (query.readyState != 4)return;
@@ -397,7 +399,9 @@
                 $('#editUserGroupList option[id=\''+idForEditUserListOption+group['id']+'\']').prop('selected', 'selected').change();
             }
         };
-        defaultDivsVisibility();
+        $('#editGroupDiv').hide();
+        $('#createContactDiv').hide();
+        $('#createGroupDiv').hide();
         $('#editContactDiv').show();
     }
 

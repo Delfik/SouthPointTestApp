@@ -72,7 +72,7 @@ public class GroupRecordController {
     }
 
     //Removes user with id = {userId} from group with id = {groupId}
-    @RequestMapping(value = "/users/{userId}/{groupId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{userId}/{groupId}", method = RequestMethod.DELETE)
     PhonebookRecord excludeUserFromGroup(@PathVariable("userId") long userId,
                                          @PathVariable("groupId") long groupId){
         PhonebookRecord result = phonebookRecordDao.getById(userId);
