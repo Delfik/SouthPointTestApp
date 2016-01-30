@@ -1,5 +1,5 @@
 # SouthPointTestApp
-Тестовое приложение для компании "Точка Юга". Вроде как, концептуально должно подходить на концепцию RESTful API. Если честно, это была первая попытка реализовать RESTful API... Так что камнями, просьба, не бить. 
+Very basic implementation of RESTful API using Spring Boot. 
 
 
-Работоспособность проверена на комбинации Ubuntu 14.04 LTS + IntelliJ IDEA + Maven
+Works fine with Ubuntu 14.04 LTS + IntelliJ IDEA + Maven
