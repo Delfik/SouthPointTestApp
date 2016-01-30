@@ -1,4 +1,4 @@
-# SouthPointTestApp
+# SpringBootRESTfulApi
 Very basic implementation of RESTful API using Spring Boot. 
 
 
